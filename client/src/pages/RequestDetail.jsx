@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { api } from '../api';
+import { api, apiUrl } from '../api';
 import { useAuth } from '../AuthContext';
 import ProgressTrack from '../components/ProgressTrack';
 import StatusBadge from '../components/StatusBadge';
@@ -46,8 +46,8 @@ export default function RequestDetail() {
           <ProgressTrack status={request.status} />
           <p className="prewrap">{request.description}</p>
           {request.image_path && (
-            <a href={request.image_path} target="_blank" rel="noreferrer">
-              <img className="evidence" src={request.image_path} alt="Photo attached to this request" loading="lazy" />
+            <a href={apiUrl(request.image_path)} target="_blank" rel="noreferrer">
+              <img className="evidence" src={apiUrl(request.image_path)} alt="Photo attached to this request" loading="lazy" />
             </a>
           )}
           <small className="muted">

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Oct 18, 2026 at 11:37 PM
+-- Generation Time: Oct 19, 2026 at 01:55 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -49,7 +49,8 @@ INSERT INTO `requests` (`id`, `user_id`, `category`, `location`, `description`, 
 (3, 2, 'Garbage Collection', 'Githurai 45 Market', 'Garbage has not been collected for two weeks and is overflowing.', NULL, 'Resolved', '2026-10-13 13:08:41', '2026-10-15 13:08:41'),
 (4, 2, 'Road Damage', 'Thika Road, Roysambu exit', 'Large pothole causing traffic and damaging vehicles.', NULL, 'In Progress', '2026-10-14 13:08:41', '2026-10-15 13:08:41'),
 (5, 2, 'Drainage & Sewer', 'Kasarani Estate, Lane 4', 'Blocked drain floods the lane whenever it rains.', NULL, 'In Progress', '2026-10-15 13:08:41', '2026-10-18 21:27:35'),
-(6, 2, 'Streetlight', 'Ngong Road, near Prestige Plaza', 'Two streetlights flicker constantly.', NULL, 'Resolved', '2026-10-16 13:08:41', '2026-10-17 01:08:41');
+(6, 2, 'Streetlight', 'Ngong Road, near Prestige Plaza', 'Two streetlights flicker constantly.', NULL, 'Resolved', '2026-10-16 13:08:41', '2026-10-17 01:08:41'),
+(7, 3, 'Garbage Collection', 'Ngomongo', 'Garbage collection is a big issue', NULL, 'Resolved', '2026-10-18 23:23:12', '2026-10-18 23:26:22');
 
 -- --------------------------------------------------------
 
@@ -83,7 +84,10 @@ INSERT INTO `status_history` (`id`, `request_id`, `status`, `note`, `changed_by`
 (10, 6, 'Pending', 'Request submitted', 2, '2026-10-16 13:08:41'),
 (11, 6, 'In Progress', 'Electrician dispatched', 1, '2026-10-16 19:08:41'),
 (12, 6, 'Resolved', 'Faulty bulbs replaced', 1, '2026-10-17 01:08:41'),
-(13, 5, 'In Progress', 'Status changed to In Progress', 1, '2026-10-18 21:27:35');
+(13, 5, 'In Progress', 'Status changed to In Progress', 1, '2026-10-18 21:27:35'),
+(14, 7, 'Pending', 'Request submitted', 3, '2026-10-18 23:23:12'),
+(15, 7, 'In Progress', 'Is being resolved', 1, '2026-10-18 23:25:45'),
+(16, 7, 'Resolved', 'Completed', 1, '2026-10-18 23:26:22');
 
 -- --------------------------------------------------------
 
@@ -106,7 +110,8 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `name`, `email`, `password_hash`, `role`, `created_at`) VALUES
 (1, 'Admin Officer', 'admin@example.com', '$2a$10$brHmKpQS1j6N.7tSs9J5F.kHTaMKwaYD3UTao.0FFRG85tPIwV6by', 'admin', '2026-10-17 16:08:41'),
-(2, 'Bryan Giitwa', 'citizen@example.com', '$2a$10$gehFJvZx9/rwM44V9Hdqxuwn1QLDVSfqK45mT5ZjxQW5BWGzP2ws6', 'citizen', '2026-10-17 16:08:41');
+(2, 'Bryan Giitwa', 'citizen@example.com', '$2a$10$gehFJvZx9/rwM44V9Hdqxuwn1QLDVSfqK45mT5ZjxQW5BWGzP2ws6', 'citizen', '2026-10-17 16:08:41'),
+(3, 'Iven Wanjiku', 'ivenmunene@gmail.com', '$2a$10$643P1kxVw1eWO4yRhVA0TeKr0DtMNscvhVqnUj1MLNgfTbGT/D/GW', 'citizen', '2026-10-18 23:21:22');
 
 --
 -- Indexes for dumped tables
@@ -144,19 +149,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `requests`
 --
 ALTER TABLE `requests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `status_history`
 --
 ALTER TABLE `status_history`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables

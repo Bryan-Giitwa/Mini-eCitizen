@@ -1,4 +1,10 @@
 const TOKEN_KEY = 'psrs_token';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://hudumahubapi.jmatecsystems.com')
+  .replace(/\/+$/, '');
+
+export function apiUrl(path) {
+  return new URL(path, `${API_BASE_URL}/`).toString();
+}
 
 export const tokenStore = {
   get: () => localStorage.getItem(TOKEN_KEY),
@@ -16,7 +22,7 @@ export async function api(path, { method = 'GET', body, formData } = {}) {
   if (token) headers.Authorization = `Bearer ${token}`;
   if (body) headers['Content-Type'] = 'application/json';
 
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(apiUrl(`/api${path}`), {
     method,
     headers,
     body: formData || (body ? JSON.stringify(body) : undefined),
