@@ -1,19 +1,16 @@
-import { useEffect, useState } from 'react';
-import { api } from '../api';
+const META = {
+  categories: [
+    'Streetlight',
+    'Water Issue',
+    'Garbage Collection',
+    'Road Damage',
+    'Drainage & Sewer',
+    'Other',
+  ],
+  statuses: ['Pending', 'In Progress', 'Resolved'],
+};
 
-let cached;
-
-/** Categories and statuses come from the server so both sides always agree. */
+/** Local UI options; the server validates submitted categories and statuses. */
 export function useMeta() {
-  const [meta, setMeta] = useState(cached || { categories: [], statuses: [] });
-
-  useEffect(() => {
-    if (cached) return;
-    api('/meta').then((data) => {
-      cached = data;
-      setMeta(data);
-    });
-  }, []);
-
-  return meta;
+  return META;
 }

@@ -1,4 +1,4 @@
-// Single source of truth for allowed values; the client reads these via GET /api/meta.
+// Server-side validation values for request categories and statuses.
 const CATEGORIES = [
   'Streetlight',
   'Water Issue',

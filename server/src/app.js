@@ -6,10 +6,7 @@ const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 
 const config = require('./config');
-const { CATEGORIES, STATUSES } = require('./constants');
 const { HttpError } = require('./errors');
-const { asyncHandler } = require('./asyncHandler');
-const { query } = require('./db');
 const { UPLOAD_DIR } = require('./middleware/upload');
 
 const app = express();
@@ -27,16 +24,6 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many attempts, please try again later' },
 });
-
-// Health check also verifies the database connection.
-app.get(
-  '/api/health',
-  asyncHandler(async (req, res) => {
-    await query('SELECT 1');
-    res.json({ ok: true });
-  })
-);
-app.get('/api/meta', (req, res) => res.json({ categories: CATEGORIES, statuses: STATUSES }));
 
 app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/requests', require('./routes/requests'));

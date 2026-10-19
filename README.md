@@ -1,161 +1,371 @@
 # Huduma Hub — Public Service Request System
 
-A mini eCitizen-style web app where citizens report local service problems (broken streetlights, water issues, uncollected garbage…) and track them to resolution, while administrators manage cases and see live analytics.
+A citizen service-request application for reporting local issues, tracking progress, and helping administrators manage cases.
 
-**Stack:** React 18 + Vite + React Router (frontend) · Node.js + Express (backend) · **MySQL / MariaDB** (database, managed with phpMyAdmin) · JWT auth
-
----
+**Stack:** React 18, Vite, React Router, Node.js, Express, MySQL/MariaDB, and JWT authentication.
 
 ## Features
 
-| Requirement                  | Implementation                                                                                          |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Citizen registration / login | `POST /api/auth/register`, `/login`; bcrypt-hashed passwords; JWT (7 days); session restored on reload  |
-| Submit request               | Category, location, description, optional image (JPG/PNG/WebP, max 5 MB) with live preview              |
-| Admin dashboard              | Role-protected page: all requests with search, status/category filters and pagination                   |
-| Status tracking              | Pending → In Progress → Resolved, set by admins; citizens see a 3-step tracker and an activity timeline |
-| Basic analytics              | Total / open / resolved counts, open-vs-resolved donut, cases by category                               |
+- Citizen registration and login with bcrypt-hashed passwords and seven-day JWTs
+- Submit requests with category, location, description, and an optional image
+- Citizen request history and status timelines
+- Admin request search, filters, pagination, status updates, and analytics
+- Responsive interface with image previews and accessible form controls
+- Authentication rate limiting, Helmet security headers, and validated image uploads
 
-**Bonus features**
+## Repository layout
 
-- Activity timeline with optional admin notes shown to the citizen
-- Average resolution time, resolution rate, new cases in the last 7 days
-- Server-side pagination, debounced search, race-condition-safe fetching
-- Rate limiting on auth routes, `helmet` headers, random upload filenames, MIME/size checks
-- Responsive design, accessible forms, reduced-motion support
-- One-click demo data in the SQL file
-
----
-
-## Project structure
-
-```
-public-service-request-system/
-├── server/
-│   ├── database/schema.sql     # ← import this in phpMyAdmin (tables + demo data)
-│   ├── src/
-│   │   ├── app.js              # Express app: middleware, routes, error handler
-│   │   ├── server.js           # Starts the HTTP server
-│   │   ├── config.js           # Environment config
-│   │   ├── constants.js        # Categories & statuses (single source of truth)
-│   │   ├── db.js               # mysql2 pool, query() and withTransaction()
-│   │   ├── asyncHandler.js     # Forwards async errors to the error middleware
-│   │   ├── errors.js           # HttpError class
-│   │   ├── middleware/         # auth (JWT, roles), upload (multer)
-│   │   ├── routes/             # auth.js, requests.js, admin.js
-│   │   └── services/requests.js# Shared queries (request + history)
-│   ├── uploads/                # Uploaded images (git-ignored)
-│   ├── .env.example
-│   └── .gitignore
-└── client/
-    ├── src/
-    │   ├── api.js              # fetch wrapper (token, JSON/FormData, errors)
-    │   ├── AuthContext.jsx     # Auth state: user, login, register, logout
-    │   ├── components/         # Layout, ProtectedRoute, AuthShell, ProgressTrack, Timeline, Analytics, Pagination…
-    │   ├── pages/              # Login, Register, Dashboard, NewRequest, RequestDetail, AdminDashboard
-    │   └── styles.css          # Design tokens + styles
-    └── .gitignore
+```text
+server/
+  database/psrs_eCitizen.sql   Database dump
+  src/
+    app.js                     Express middleware and route mounting
+    server.js                  HTTP server startup
+    config.js                  Environment-based configuration
+    constants.js               Valid request categories and statuses
+    routes/                    Authentication, citizen, and admin endpoints
+    services/                  Shared request/history queries
+    middleware/                Authentication and image upload handling
+  uploads/                     Uploaded images (created at runtime)
+client/
+  public/.htaccess             Apache fallback for client-side routes
+  src/
+    api.js                     Shared API client
+    pages/                     Login, registration, citizen, and admin screens
+    components/                Shared UI components
 ```
 
-### Design & optimisation notes
+## Local development
 
-- **Layered backend:** routes handle HTTP, `services/` hold reusable queries, middleware handles cross-cutting concerns.
-- **Connection pooling** (`mysql2`) with every connection set to UTC; `updated_at` maintained by MySQL (`ON UPDATE CURRENT_TIMESTAMP`).
-- **Transactions** keep a request and its first history entry (and every status change + history entry) atomic.
-- **Parallel queries:** analytics and the paginated list run their independent queries with `Promise.all`.
-- **Indexes** on `(status, created_at)`, `(user_id, created_at)` and `category` back the dashboard filters.
-- **No check-then-insert races:** duplicate emails are caught from the `UNIQUE` index error.
-- **Frontend:** admin screens are lazy-loaded (separate bundle), request cards are memoised, counts are computed once with `useMemo`, stale responses are ignored.
-- **Server owns the rules:** categories/statuses are served at `GET /api/meta` so the client never drifts out of sync.
-- **Privacy:** requesting someone else's request returns `404`, not `403`, so ids can't be probed.
+### Requirements
 
----
+- Node.js 18 or later
+- MySQL/MariaDB
 
-## Setup
+### Database
 
-**Requirements:** Node.js 18+, and MySQL 5.7+/8 or MariaDB 10.3+ (for example via XAMPP, WAMP or MAMP, which include phpMyAdmin).
+Import [`server/database/psrs_eCitizen.sql`](./server/database/psrs_eCitizen.sql) into MySQL/MariaDB. It is a database dump for `psrs_eCitizen`; inspect the SQL before importing it into a database that already contains data.
 
-### 1. Database (phpMyAdmin)
+### Backend
 
-1. Start MySQL/Apache from your XAMPP/WAMP control panel and open **http://localhost/phpmyadmin**.
-2. Click the **Import** tab → **Choose file** → select `server/database/schema.sql` → **Go**.
-   The script creates the `psrs` database, the tables, indexes and demo data.
-   (Importing again resets the demo data — see the warning at the top of the file.)
-
-Prefer the command line? `mysql -u root -p < server/database/schema.sql`
-
-### 2. Backend
+Install dependencies in `server/`, configure `server/.env`, then start the API:
 
 ```bash
 cd server
 npm install
-cd src
-nodemon server.js               # http://localhost:5000
+npm run dev
 ```
 
-XAMPP's defaults (`root`, empty password) work with the unchanged `.env.example`. Check the connection at http://localhost:5000/api/health — it should return `{"ok":true}`.
+Configure at least `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`, and `CLIENT_ORIGIN`. Use `DB_NAME=psrs_eCitizen`. Set a strong, unique `JWT_SECRET` outside development. For local development, `CLIENT_ORIGIN` is typically `http://localhost:5173`.
 
-### 3. Frontend (new terminal)
+### Frontend
+
+In a separate terminal:
 
 ```bash
 cd client
 npm install
-npm run dev               # http://localhost:5173
+npm run dev
 ```
 
-The Vite dev server proxies `/api` and `/uploads` to the backend, so no extra config is needed.
+The Vite development server proxies `/api` and `/uploads` to `http://localhost:5000`.
 
-### Demo accounts (included in `schema.sql`)
+## Production deployment
 
-| Role    | Email                 | Password      |
-| ------- | --------------------- | ------------- |
-| Admin   | `admin@example.com`   | `Admin123!`   |
-| Citizen | `citizen@example.com` | `Citizen123!` |
+The production API base URL used by the client is:
 
-New citizen accounts can be registered from the UI. To make someone an admin, change their `role` to `admin` in phpMyAdmin (`users` table).
-
-### Production build
-
-```bash
-cd client && npm run build      # outputs client/dist
-cd ../server && NODE_ENV=production JWT_SECRET=... npm start
+```text
+https://hudumahubapi.jmatecsystems.com
 ```
 
-Serve `client/dist` from any static host or reverse proxy. For cPanel/Apache, the Vite build includes `client/public/.htaccess` to route client-side URLs back to `index.html`; upload the complete contents of `client/dist` (including the hidden `.htaccess` file) to the frontend document root. Set the backend's `CLIENT_ORIGIN` to the exact frontend origin (scheme + hostname), without a trailing slash. Multiple origins may be comma-separated, for example `http://localhost:5173,https://hudumahub.jmatecsystems.com`. In cPanel, set this in the Node.js application's environment variables and restart the application after changing it. Use a dedicated MySQL user instead of `root` in production.
+Build the frontend with `cd client && npm run build`. Deploy the contents of `client/dist` to the frontend document root. On cPanel/Apache, include the hidden `.htaccess` file so browser refreshes on client-side routes resolve to `index.html`. If refreshes still return 404, confirm Apache `mod_rewrite` is enabled and `.htaccess` overrides are permitted.
 
-### Troubleshooting
+Configure the backend's production environment with the database credentials, a strong `JWT_SECRET`, and:
 
-| Symptom                             | Fix                                                             |
-| ----------------------------------- | --------------------------------------------------------------- |
-| `ECONNREFUSED` / health check fails | MySQL isn't running, or `DB_HOST`/`DB_PORT` in `.env` are wrong |
-| `ER_ACCESS_DENIED_ERROR`            | Wrong `DB_USER` / `DB_PASSWORD` in `.env`                       |
-| `ER_BAD_DB_ERROR`                   | `schema.sql` hasn't been imported, or `DB_NAME` isn't `psrs`    |
-| Login fails for demo users          | Re-import `schema.sql` (it contains the demo password hashes)   |
+```text
+CLIENT_ORIGIN=https://hudumahub.jmatecsystems.com
+```
 
----
+`CLIENT_ORIGIN` must match the frontend's scheme and hostname exactly and must not include a path or trailing slash. Multiple origins can be comma-separated. Restart the backend after changing environment variables. Use a dedicated database user with only the required privileges.
 
 ## API reference
 
-All routes except auth and meta require `Authorization: Bearer <token>`.
+### Base URL
 
-| Method | Endpoint                                                | Access      | Description                            |
-| ------ | ------------------------------------------------------- | ----------- | -------------------------------------- |
-| GET    | `/api/health`                                           | public      | API + database check                   |
-| GET    | `/api/meta`                                             | public      | Categories and statuses                |
-| POST   | `/api/auth/register`                                    | public      | Create citizen account                 |
-| POST   | `/api/auth/login`                                       | public      | Log in, returns token + user           |
-| GET    | `/api/auth/me`                                          | user        | Current user                           |
-| POST   | `/api/requests`                                         | user        | Submit request (`multipart/form-data`) |
-| GET    | `/api/requests`                                         | user        | My requests                            |
-| GET    | `/api/requests/:id`                                     | owner/admin | Request with status history            |
-| GET    | `/api/admin/requests?status=&category=&q=&page=&limit=` | admin       | `{ items, total, page, pages }`        |
-| PATCH  | `/api/admin/requests/:id/status`                        | admin       | `{ status, note? }`                    |
-| GET    | `/api/admin/analytics`                                  | admin       | Counts, categories, 7-day trend        |
+```text
+https://hudumahubapi.jmatecsystems.com
+```
 
-Errors always return `{ "error": "message" }` with an appropriate status code.
+For JSON requests, send `Content-Type: application/json`. Protected routes require:
 
----
+```http
+Authorization: Bearer YOUR_JWT_TOKEN
+```
 
-## Possible next steps
+Registration and login return a JWT that expires after seven days. Replace `{id}` in a URL with the relevant request ID. Examples below use illustrative data.
 
-Email/SMS notifications on status change, a map-based location picker, automated tests (Vitest + Supertest), Docker Compose with MySQL.
+### Authentication
+
+#### Register
+
+`POST /api/auth/register` — public; creates a citizen account.
+
+**Request body:**
+
+```json
+{
+  "name": "Jane Citizen",
+  "email": "jane@example.com",
+  "password": "securepass123"
+}
+```
+
+Name must be at least 2 characters, email must be valid, and password must be at least 8 characters.
+
+**Success — `201 Created`:**
+
+```json
+{
+  "token": "YOUR_JWT_TOKEN",
+  "user": {
+    "id": 12,
+    "name": "Jane Citizen",
+    "email": "jane@example.com",
+    "role": "citizen"
+  }
+}
+```
+
+#### Login
+
+`POST /api/auth/login` — public.
+
+**Request body:**
+
+```json
+{
+  "email": "jane@example.com",
+  "password": "securepass123"
+}
+```
+
+**Success — `200 OK`:** Same response shape as registration.
+
+#### Get current user
+
+`GET /api/auth/me` — authenticated; no request body.
+
+**Success — `200 OK`:**
+
+```json
+{
+  "user": {
+    "id": 12,
+    "name": "Jane Citizen",
+    "email": "jane@example.com",
+    "role": "citizen"
+  }
+}
+```
+
+### Citizen requests
+
+All `/api/requests` endpoints require authentication. Citizens can access their own requests; administrators can access any request.
+
+#### Create a request
+
+`POST /api/requests` — authenticated citizen. Send as `multipart/form-data`, not JSON. The optional image field must be named `image`; accepted types are JPG, PNG, and WebP, with a 5 MB maximum.
+
+**Form fields:**
+
+```text
+category=Streetlight
+location=Kenyatta Avenue, near Total Petrol Station
+description=The streetlight has been out for a week.
+image=<optional image file>
+```
+
+Allowed categories are `Streetlight`, `Water Issue`, `Garbage Collection`, `Road Damage`, `Drainage & Sewer`, and `Other`. Location must be 3–255 characters; description must be 10–1000 characters.
+
+**Success — `201 Created`:**
+
+```json
+{
+  "id": 18,
+  "user_id": 12,
+  "category": "Streetlight",
+  "location": "Kenyatta Avenue, near Total Petrol Station",
+  "description": "The streetlight has been out for a week.",
+  "image_path": "/uploads/example-image.jpg",
+  "status": "Pending",
+  "created_at": "2026-10-19T00:00:00.000Z",
+  "updated_at": "2026-10-19T00:00:00.000Z",
+  "citizen_name": "Jane Citizen",
+  "citizen_email": "jane@example.com",
+  "history": [
+    {
+      "id": 42,
+      "status": "Pending",
+      "note": "Request submitted",
+      "created_at": "2026-10-19T00:00:00.000Z",
+      "changed_by_name": "Jane Citizen"
+    }
+  ]
+}
+```
+
+`image_path` is `null` when no image is uploaded. To retrieve an image, append its path to the production base URL.
+
+#### List my requests
+
+`GET /api/requests` — authenticated citizen; no request body.
+
+**Success — `200 OK`:** Array of request records. The list response does not include `history`.
+
+```json
+[
+  {
+    "id": 18,
+    "user_id": 12,
+    "category": "Streetlight",
+    "location": "Kenyatta Avenue, near Total Petrol Station",
+    "description": "The streetlight has been out for a week.",
+    "image_path": null,
+    "status": "Pending",
+    "created_at": "2026-10-19T00:00:00.000Z",
+    "updated_at": "2026-10-19T00:00:00.000Z",
+    "citizen_name": "Jane Citizen",
+    "citizen_email": "jane@example.com"
+  }
+]
+```
+
+#### Get a request and its history
+
+`GET /api/requests/{id}` — authenticated owner or administrator; no request body.
+
+**Success — `200 OK`:** One request record with a `history` array, in the same shape as the create-request response.
+
+### Administrator endpoints
+
+All `/api/admin` endpoints require an administrator token.
+
+#### List, filter, and search requests
+
+`GET /api/admin/requests` — no request body.
+
+Optional query parameters:
+
+| Parameter  | Description                                   |
+| ---------- | --------------------------------------------- |
+| `page`     | Page number, starts at `1`                    |
+| `limit`    | Page size, defaults to `10`, maximum `50`     |
+| `status`   | `Pending`, `In Progress`, or `Resolved`       |
+| `category` | One of the allowed request categories         |
+| `q`        | Search location, description, or citizen name |
+
+Example:
+
+```text
+https://hudumahubapi.jmatecsystems.com/api/admin/requests?page=1&limit=10&status=Pending&q=Nairobi
+```
+
+**Success — `200 OK`:**
+
+```json
+{
+  "items": [
+    {
+      "id": 18,
+      "user_id": 12,
+      "category": "Streetlight",
+      "location": "Kenyatta Avenue, near Total Petrol Station",
+      "description": "The streetlight has been out for a week.",
+      "image_path": null,
+      "status": "Pending",
+      "created_at": "2026-10-19T00:00:00.000Z",
+      "updated_at": "2026-10-19T00:00:00.000Z",
+      "citizen_name": "Jane Citizen",
+      "citizen_email": "jane@example.com"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pages": 1
+}
+```
+
+#### Update request status
+
+`PATCH /api/admin/requests/{id}/status`
+
+**Request body:**
+
+```json
+{
+  "status": "In Progress",
+  "note": "A maintenance team has been assigned."
+}
+```
+
+`status` must be `Pending`, `In Progress`, or `Resolved`. `note` is optional and limited to 500 characters.
+
+**Success — `200 OK`:** The updated request record with its `history` array.
+
+#### Get analytics
+
+`GET /api/admin/analytics` — no request body.
+
+**Success — `200 OK`:**
+
+```json
+{
+  "total": 20,
+  "open": 8,
+  "resolved": 12,
+  "byStatus": {
+    "Pending": 3,
+    "In Progress": 5,
+    "Resolved": 12
+  },
+  "resolutionRate": 60,
+  "avgResolutionHours": 18.5,
+  "byCategory": [
+    {
+      "category": "Streetlight",
+      "total": 6,
+      "resolved": 4
+    }
+  ],
+  "last7Days": [
+    {
+      "day": "2026-10-19",
+      "count": 2
+    }
+  ]
+}
+```
+
+## Errors and limits
+
+Errors return JSON in this form:
+
+```json
+{
+  "error": "Error description"
+}
+```
+
+Typical status codes:
+
+| Status | Meaning                                                                |
+| ------ | ---------------------------------------------------------------------- |
+| `400`  | Invalid input, unsupported image, or malformed JSON                    |
+| `401`  | Missing/invalid/expired token or incorrect credentials                 |
+| `403`  | Authenticated user is not an administrator                             |
+| `404`  | Endpoint or request not found, or request is not visible to the caller |
+| `409`  | Registration email is already in use                                   |
+| `429`  | Authentication rate limit exceeded                                     |
+| `500`  | Unexpected server error                                                |
+
+Authentication routes are limited to 50 attempts per 15-minute window.
