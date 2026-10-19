@@ -121,7 +121,7 @@ cd client && npm run build      # outputs client/dist
 cd ../server && NODE_ENV=production JWT_SECRET=... npm start
 ```
 
-Serve `client/dist` from any static host or reverse proxy, forwarding `/api` and `/uploads` to the server (set `CLIENT_ORIGIN` accordingly). Use a dedicated MySQL user instead of `root` in production.
+Serve `client/dist` from any static host or reverse proxy. For cPanel/Apache, the Vite build includes `client/public/.htaccess` to route client-side URLs back to `index.html`; upload the complete contents of `client/dist` (including the hidden `.htaccess` file) to the frontend document root. Set the backend's `CLIENT_ORIGIN` to the exact frontend origin (scheme + hostname), without a trailing slash. Multiple origins may be comma-separated, for example `http://localhost:5173,https://hudumahub.jmatecsystems.com`. In cPanel, set this in the Node.js application's environment variables and restart the application after changing it. Use a dedicated MySQL user instead of `root` in production.
 
 ### Troubleshooting
 
