@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import AuthShell from '../components/AuthShell';
+import PasswordInput from '../components/PasswordInput';
 
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -17,7 +18,7 @@ export default function Register() {
     setError('');
     setBusy(true);
     try {
-      await register(form.name, form.email, form.password);
+      await register(form.name, form.email, form.phone, form.password);
       navigate('/', { replace: true });
     } catch (err) {
       setError(err.message);
@@ -37,9 +38,15 @@ export default function Register() {
           <input type="email" name="email" required autoComplete="email" value={form.email} onChange={update} />
         </label>
         <label className="field">
-          <span>Password</span>
-          <input type="password" name="password" required minLength="8" autoComplete="new-password"
-            value={form.password} onChange={update} />
+          <span>Phone number</span>
+          <input type="tel" name="phone" required autoComplete="tel" maxLength="20"
+            placeholder="+254 712 345 678" value={form.phone} onChange={update} />
+          <small className="muted">Include your country code, e.g. +254 712 345 678</small>
+        </label>
+        <label className="field">
+          <span id="register-password-label">Password</span>
+          <PasswordInput id="register-password" name="password" required minLength="8" autoComplete="new-password"
+            value={form.password} onChange={update} aria-labelledby="register-password-label" />
           <small className="muted">At least 8 characters</small>
         </label>
         {error && <p className="alert alert--error" role="alert">{error}</p>}

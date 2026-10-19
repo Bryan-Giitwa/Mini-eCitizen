@@ -1,4 +1,5 @@
 const express = require("express");
+const bcrypt = require("bcryptjs");
 const { query, withTransaction } = require("../db");
 const { STATUSES } = require("../constants");
 const { HttpError } = require("../errors");
@@ -9,11 +10,195 @@ const {
   addHistory,
   getRequestWithHistory,
 } = require("../services/requests");
+const { sendRequestStatusUpdate } = require("../services/notifications");
 
 const router = express.Router();
 router.use(authenticate, requireAdmin);
 
 const MAX_PAGE_SIZE = 50;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// POST /api/admin/users — create a citizen or admin account.
+router.post(
+  "/users",
+  asyncHandler(async (req, res) => {
+    const name = String(req.body.name || "").trim();
+    const email = String(req.body.email || "").trim().toLowerCase();
+    const phone = String(req.body.phone || "").trim().replace(/[\s().-]/g, "");
+    const password = String(req.body.password || "");
+    const role = String(req.body.role || "");
+
+    if (name.length < 2 || name.length > 100) {
+      throw new HttpError(400, "Name must be between 2 and 100 characters");
+    }
+    if (!EMAIL_RE.test(email)) throw new HttpError(400, "Enter a valid email address");
+    if (!/^\+?[1-9]\d{6,14}$/.test(phone)) {
+      throw new HttpError(400, "Enter a valid phone number with country code");
+    }
+    if (password.length < 8) throw new HttpError(400, "Password must be at least 8 characters");
+    if (!["citizen", "admin"].includes(role)) {
+      throw new HttpError(400, "Role must be citizen or admin");
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    let result;
+    try {
+      result = await query(
+        "INSERT INTO users (name, email, phone, password_hash, role) VALUES (?, ?, ?, ?, ?)",
+        [name, email, phone, passwordHash, role],
+      );
+    } catch (err) {
+      if (err.code === "ER_DUP_ENTRY") {
+        throw new HttpError(409, "An account with this email already exists");
+      }
+      throw err;
+    }
+
+    res.status(201).json({
+      user: {
+        id: result.insertId,
+        name,
+        email,
+        phone,
+        role,
+      },
+    });
+  }),
+);
+
+// GET /api/admin/users?page=1 — list accounts in pages of at most five.
+router.get(
+  "/users",
+  asyncHandler(async (req, res) => {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = 5;
+    const [[{ total }], users] = await Promise.all([
+      query("SELECT COUNT(*) AS total FROM users"),
+      query(
+        "SELECT id, name, email, phone, role, created_at FROM users ORDER BY id DESC LIMIT ? OFFSET ?",
+        [limit, (page - 1) * limit],
+      ),
+    ]);
+
+    res.json({
+      items: users,
+      total,
+      page,
+      pages: Math.max(Math.ceil(total / limit), 1),
+    });
+  }),
+);
+
+// PATCH /api/admin/users/:id — update account details and optionally reset password.
+router.patch(
+  "/users/:id",
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+      throw new HttpError(400, "Invalid user ID");
+    }
+
+    const name = String(req.body.name || "").trim();
+    const email = String(req.body.email || "").trim().toLowerCase();
+    const rawPhone = String(req.body.phone || "").trim();
+    const phone = rawPhone ? rawPhone.replace(/[\s().-]/g, "") : null;
+    const password = String(req.body.password || "");
+    const role = String(req.body.role || "");
+
+    if (name.length < 2 || name.length > 100) {
+      throw new HttpError(400, "Name must be between 2 and 100 characters");
+    }
+    if (email.length > 191 || !EMAIL_RE.test(email)) {
+      throw new HttpError(400, "Enter a valid email address");
+    }
+    if (phone && !/^\+?[1-9]\d{6,14}$/.test(phone)) {
+      throw new HttpError(400, "Enter a valid phone number with country code");
+    }
+    if (password && password.length < 8) {
+      throw new HttpError(400, "Password must be at least 8 characters");
+    }
+    if (!["citizen", "admin"].includes(role)) {
+      throw new HttpError(400, "Role must be citizen or admin");
+    }
+    if (id === req.user.id && role !== req.user.role) {
+      throw new HttpError(400, "You cannot change your own administrator role");
+    }
+
+    const passwordHash = password ? await bcrypt.hash(password, 10) : null;
+    let user;
+    try {
+      user = await withTransaction(async (conn) => {
+        // Lock administrator rows consistently so concurrent changes cannot remove every admin.
+        const administrators = await query(
+          "SELECT id FROM users WHERE role = 'admin' FOR UPDATE",
+          [],
+          conn,
+        );
+        const [account] = await query(
+          "SELECT id, name, email, phone, role FROM users WHERE id = ? FOR UPDATE",
+          [id],
+          conn,
+        );
+        if (!account) throw new HttpError(404, "User not found");
+        if (account.role === "admin" && role !== "admin" && administrators.length <= 1) {
+          throw new HttpError(400, "The last administrator cannot be demoted");
+        }
+
+        await query(
+          `UPDATE users
+           SET name = ?, email = ?, phone = ?, role = ?,
+               password_hash = COALESCE(?, password_hash)
+           WHERE id = ?`,
+          [name, email, phone, role, passwordHash, id],
+          conn,
+        );
+        return { id, name, email, phone, role };
+      });
+    } catch (err) {
+      if (err.code === "ER_DUP_ENTRY") {
+        throw new HttpError(409, "An account with this email already exists");
+      }
+      throw err;
+    }
+
+    res.json({ user });
+  }),
+);
+
+// DELETE /api/admin/users/:id — delete a user and their associated requests.
+router.delete(
+  "/users/:id",
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+      throw new HttpError(400, "Invalid user ID");
+    }
+    if (id === req.user.id) {
+      throw new HttpError(400, "You cannot delete your own administrator account");
+    }
+
+    await withTransaction(async (conn) => {
+      const administrators = await query(
+        "SELECT id FROM users WHERE role = 'admin' FOR UPDATE",
+        [],
+        conn,
+      );
+      const [account] = await query(
+        "SELECT id, role FROM users WHERE id = ? FOR UPDATE",
+        [id],
+        conn,
+      );
+      if (!account) throw new HttpError(404, "User not found");
+      if (account.role === "admin" && administrators.length <= 1) {
+        throw new HttpError(400, "The last administrator cannot be deleted");
+      }
+
+      await query("DELETE FROM users WHERE id = ?", [id], conn);
+    });
+
+    res.json({ deleted: true, id });
+  }),
+);
 
 // GET /api/admin/requests?status=&category=&q=&page=1&limit=10
 router.get(
@@ -103,7 +288,26 @@ router.patch(
       );
     });
 
-    res.json(await getRequestWithHistory(id));
+    const updatedRequest = await getRequestWithHistory(id);
+    if (existing.status !== status) {
+      const [citizen] = await query(
+        `SELECT u.name, u.email, u.phone, r.category, r.location
+         FROM requests r JOIN users u ON u.id = r.user_id
+         WHERE r.id = ?`,
+        [id],
+      );
+      await sendRequestStatusUpdate({
+        id,
+        name: citizen.name,
+        email: citizen.email,
+        phone: citizen.phone,
+        category: citizen.category,
+        location: citizen.location,
+        status,
+      });
+    }
+
+    res.json(updatedRequest);
   }),
 );
 

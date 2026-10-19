@@ -11,8 +11,15 @@ const { UPLOAD_DIR } = require('./middleware/upload');
 
 const app = express();
 
+app.set('trust proxy', 1);
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(cors({ origin: config.clientOrigins }));
+app.use(cors({
+  origin: config.clientOrigins,
+  methods: ['GET', 'HEAD', 'POST', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
+  maxAge: 86400,
+}));
 app.use(express.json({ limit: '100kb' }));
 app.use('/uploads', express.static(UPLOAD_DIR));
 
@@ -26,6 +33,7 @@ const authLimiter = rateLimit({
 });
 
 app.use('/api/auth', authLimiter, require('./routes/auth'));
+app.use('/api/contact', require('./routes/contact'));
 app.use('/api/requests', require('./routes/requests'));
 app.use('/api/admin', require('./routes/admin'));
 

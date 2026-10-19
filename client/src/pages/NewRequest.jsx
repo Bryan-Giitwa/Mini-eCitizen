@@ -44,7 +44,7 @@ export default function NewRequest() {
       Object.entries(form).forEach(([k, v]) => formData.append(k, v));
       if (image) formData.append('image', image);
       const created = await api('/requests', { method: 'POST', formData });
-      navigate(`/requests/${created.id}`, { replace: true });
+      navigate(`/requests/${created.id}`, { replace: true, state: { submitted: true } });
     } catch (err) {
       setError(err.message);
       setBusy(false);

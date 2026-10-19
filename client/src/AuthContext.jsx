@@ -23,18 +23,30 @@ export function AuthProvider({ children }) {
     return user;
   }, []);
 
+  const syncUser = useCallback((updatedUser) => {
+    setUser((current) =>
+      current?.id === updatedUser.id ? updatedUser : current
+    );
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
       loading,
       login: (email, password) => authenticate('/auth/login', { email, password }),
-      register: (name, email, password) => authenticate('/auth/register', { name, email, password }),
+      register: (name, email, phone, password) => authenticate('/auth/register', { name, email, phone, password }),
+      updateProfile: async (profile) => {
+        const { user } = await api('/auth/profile', { method: 'PATCH', body: profile });
+        setUser(user);
+        return user;
+      },
+      syncUser,
       logout: () => {
         tokenStore.clear();
         setUser(null);
       },
     }),
-    [user, loading, authenticate]
+    [user, loading, authenticate, syncUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

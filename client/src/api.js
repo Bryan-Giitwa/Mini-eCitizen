@@ -1,8 +1,10 @@
 const TOKEN_KEY = 'psrs_token';
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://hudumahubapi.jmatecsystems.com')
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL
+  || (import.meta.env.DEV ? '' : 'https://hudumahubapi.jmatecsystems.com'))
   .replace(/\/+$/, '');
 
 export function apiUrl(path) {
+  if (!API_BASE_URL) return path;
   return new URL(path, `${API_BASE_URL}/`).toString();
 }
 

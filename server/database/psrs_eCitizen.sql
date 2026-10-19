@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Oct 19, 2026 at 01:55 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Host: localhost:3306
+-- Generation Time: Oct 19, 2026 at 04:15 PM
+-- Server version: 10.11.19-MariaDB-cll-lve
+-- PHP Version: 8.4.26
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `psrs_eCitizen`
+-- Database: `jmatecsy_psrs_eCitizen`
 --
 
 -- --------------------------------------------------------
@@ -99,6 +99,7 @@ CREATE TABLE `users` (
   `id` int(10) UNSIGNED NOT NULL,
   `name` varchar(100) NOT NULL,
   `email` varchar(191) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
   `password_hash` varchar(255) NOT NULL,
   `role` enum('citizen','admin') NOT NULL DEFAULT 'citizen',
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
@@ -108,10 +109,10 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password_hash`, `role`, `created_at`) VALUES
-(1, 'Admin Officer', 'admin@example.com', '$2a$10$brHmKpQS1j6N.7tSs9J5F.kHTaMKwaYD3UTao.0FFRG85tPIwV6by', 'admin', '2026-10-17 16:08:41'),
-(2, 'Bryan Giitwa', 'citizen@example.com', '$2a$10$gehFJvZx9/rwM44V9Hdqxuwn1QLDVSfqK45mT5ZjxQW5BWGzP2ws6', 'citizen', '2026-10-17 16:08:41'),
-(3, 'Iven Wanjiku', 'ivenmunene@gmail.com', '$2a$10$643P1kxVw1eWO4yRhVA0TeKr0DtMNscvhVqnUj1MLNgfTbGT/D/GW', 'citizen', '2026-10-18 23:21:22');
+INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password_hash`, `role`, `created_at`) VALUES
+(1, 'Admin Officer', 'admin@example.com', '+254703816487', '$2a$10$brHmKpQS1j6N.7tSs9J5F.kHTaMKwaYD3UTao.0FFRG85tPIwV6by', 'admin', '2026-10-17 16:08:41'),
+(2, 'Bryan Giitwa', 'citizen@example.com', '+254703816487', '$2a$10$gehFJvZx9/rwM44V9Hdqxuwn1QLDVSfqK45mT5ZjxQW5BWGzP2ws6', 'citizen', '2026-10-17 16:08:41'),
+(3, 'Iven Wanjiku', 'ivenmunene@gmail.com', '+254740100098', '$2a$10$643P1kxVw1eWO4yRhVA0TeKr0DtMNscvhVqnUj1MLNgfTbGT/D/GW', 'citizen', '2026-10-18 23:21:22');
 
 --
 -- Indexes for dumped tables

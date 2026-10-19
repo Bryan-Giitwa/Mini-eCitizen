@@ -6,6 +6,7 @@ const { asyncHandler } = require('../asyncHandler');
 const { authenticate } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
 const { BASE_SELECT, addHistory, getRequestById, getRequestWithHistory } = require('../services/requests');
+const { sendRequestReceived } = require('../services/notifications');
 
 const router = express.Router();
 router.use(authenticate);
@@ -38,7 +39,16 @@ router.post(
       return result.insertId;
     });
 
-    res.status(201).json(await getRequestWithHistory(id));
+    const request = await getRequestWithHistory(id);
+    await sendRequestReceived({
+      id,
+      name: req.user.name,
+      email: req.user.email,
+      phone: req.user.phone,
+      category,
+      location,
+    });
+    res.status(201).json(request);
   })
 );
 

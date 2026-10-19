@@ -17,7 +17,7 @@ const authenticate = asyncHandler(async (req, res, next) => {
     throw new HttpError(401, 'Invalid or expired token');
   }
 
-  const [user] = await query('SELECT id, name, email, role FROM users WHERE id = ?', [payload.id]);
+  const [user] = await query('SELECT id, name, email, phone, role FROM users WHERE id = ?', [payload.id]);
   if (!user) throw new HttpError(401, 'Account no longer exists');
 
   req.user = user;

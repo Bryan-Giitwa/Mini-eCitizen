@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import AuthShell from '../components/AuthShell';
+import PasswordInput from '../components/PasswordInput';
 
 export default function Login() {
   const { login } = useAuth();
@@ -34,8 +35,9 @@ export default function Login() {
           <input type="email" name="email" required autoComplete="email" value={form.email} onChange={update} />
         </label>
         <label className="field">
-          <span>Password</span>
-          <input type="password" name="password" required autoComplete="current-password" value={form.password} onChange={update} />
+          <span id="login-password-label">Password</span>
+          <PasswordInput id="login-password" name="password" required autoComplete="current-password"
+            value={form.password} onChange={update} aria-labelledby="login-password-label" />
         </label>
         {error && <p className="alert alert--error" role="alert">{error}</p>}
         <button className="btn btn--primary" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</button>

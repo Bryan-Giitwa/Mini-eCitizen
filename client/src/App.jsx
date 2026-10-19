@@ -8,9 +8,11 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import NewRequest from './pages/NewRequest';
 import RequestDetail from './pages/RequestDetail';
+import Profile from './pages/Profile';
 
 // Admin screens are only needed by admins, so they are split into their own bundle.
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminCreateUser = lazy(() => import('./components/AdminCreateUser'));
 
 /** Sends admins and citizens to their own home screen. */
 function Home() {
@@ -29,6 +31,7 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Home />} />
             <Route path="/requests/:id" element={<RequestDetail />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
 
           <Route element={<ProtectedRoute role="citizen" />}>
@@ -37,6 +40,7 @@ export default function App() {
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/users/new" element={<AdminCreateUser />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

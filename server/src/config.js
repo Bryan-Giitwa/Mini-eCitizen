@@ -3,11 +3,15 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 
 const isProduction = process.env.NODE_ENV === 'production';
-const clientOrigins = (process.env.CLIENT_ORIGIN
-  || (isProduction ? 'https://hudumahub.jmatecsystems.com' : 'http://localhost:5173'))
+const defaultClientOrigins = [
+  'https://hudumahub.jmatecsystems.com',
+  'http://localhost:5173',
+];
+const configuredClientOrigins = (process.env.CLIENT_ORIGIN || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
+const clientOrigins = [...new Set([...defaultClientOrigins, ...configuredClientOrigins])];
 
 if (clientOrigins.length === 0) {
   throw new Error('CLIENT_ORIGIN must contain at least one allowed origin');
