@@ -2,6 +2,9 @@
 
 A citizen service-request application for reporting local issues, tracking progress, and helping administrators manage cases.
 
+> **Live production demo:** [Open Huduma Hub](https://hudumahub.jmatecsystems.com)  
+> **Reviewer access:** Register a citizen account from the live site to explore the citizen experience. Administrator demo access should be shared privately with authorized reviewers; passwords and personal account emails are intentionally not published in this repository.
+
 **Stack:** React 18, Vite, React Router, Node.js, Express, MySQL, and JWT authentication.
 
 ## Features
