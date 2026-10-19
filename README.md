@@ -143,6 +143,18 @@ Name must be at least 2 characters, email must be valid, and password must be at
 
 **Success — `200 OK`:** Same response shape as registration.
 
+```json
+{
+  "token": "YOUR_JWT_TOKEN",
+  "user": {
+    "id": 12,
+    "name": "Jane Citizen",
+    "email": "jane@example.com",
+    "role": "citizen"
+  }
+}
+```
+
 #### Get current user
 
 `GET /api/auth/me` — authenticated; no request body.
