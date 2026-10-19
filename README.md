@@ -64,8 +64,6 @@ Configure notification delivery with `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USERNAME
 
 The floating contact assistant is available on login, registration, and app pages. It offers quick request-help answers and a contact-an-agent flow that collects a name, email, phone number, and message. Support inquiries are rate-limited and emailed to `SUPPORT_EMAIL`; the requester receives an acknowledgment from the configured `EMAIL_USERNAME` mailbox.
 
-For an existing database, apply [`server/database/migrations/20261019_add_users_phone.sql`](./server/database/migrations/20261019_add_users_phone.sql) before deploying the updated API. This adds a nullable `phone` column for existing accounts; phone numbers are required for new registrations.
-
 ### Frontend
 
 In a separate terminal:
@@ -88,7 +86,7 @@ CLIENT_ORIGIN=https://hudumahub.jmatecsystems.com,http://localhost:5173
 
 Each `CLIENT_ORIGIN` must match its frontend's scheme and hostname exactly and must not include a path or trailing slash. Multiple origins can be comma-separated. Restart the backend after changing environment variables. Use a dedicated database user with only the required privileges.
 
-During local Vite development, requests use the configured `/api` and `/uploads` development proxy to `http://localhost:5000`. Production builds use `https://hudumahubapi.jmatecsystems.com` unless `VITE_API_BASE_URL` is set at build time. The API hostname must be configured by the hosting provider to route requests to the Node.js/Express application. If it returns a hosting-provider 404 rather than an Express response, configure or restart the Node.js application for that hostname; application CORS settings cannot fix requests that never reach Express.
+During local Vite development, requests use the configured `/api` and `/uploads` development proxy to `http://localhost:5000`. Production builds use `https://hudumahubapi.jmatecsystems.com` unless `VITE_API_BASE_URL` is set at build time.
 
 ## API reference
 
@@ -105,29 +103,6 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 Registration and login return a JWT that expires after seven days. Replace `{id}` in a URL with the relevant request ID. Examples below use illustrative data.
-
-### Public support contact
-
-`POST /api/contact` — public, limited to five submissions per IP in 15 minutes.
-
-**Request body:**
-
-```json
-{
-  "name": "Jane Citizen",
-  "email": "jane@example.com",
-  "phone": "+254712345678",
-  "message": "I need help understanding the status of my service request."
-}
-```
-
-**Success — `202 Accepted`:** The support team is emailed the inquiry, and the requester receives a confirmation email.
-
-```json
-{
-  "message": "Your support request has been received. We will contact you soon."
-}
-```
 
 ### Authentication
 
@@ -152,7 +127,7 @@ Name must be at least 2 characters, email must be valid, phone must include a co
 
 ```json
 {
-  "token": "YOUR_JWT_TOKEN",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6ImNpdGl6ZW4iLCJpYXQiOjE3OTI0MzY5OTAsImV4cCI6MTc5MzA0MTc5MH0.UhIhdVlv9AlqvHt2cetmu0Hbhy2e6-g5adH6JciOTxk",
   "user": {
     "id": 12,
     "name": "Jane Citizen",
@@ -180,7 +155,7 @@ Name must be at least 2 characters, email must be valid, phone must include a co
 
 ```json
 {
-  "token": "YOUR_JWT_TOKEN",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6ImNpdGl6ZW4iLCJpYXQiOjE3OTI0MzY5OTAsImV4cCI6MTc5MzA0MTc5MH0.UhIhdVlv9AlqvHt2cetmu0Hbhy2e6-g5adH6JciOTxk",
   "user": {
     "id": 12,
     "name": "Jane Citizen",
@@ -319,6 +294,29 @@ After saving a request, the system sends the citizen an email and SMS confirming
 `GET /api/requests/{id}` — authenticated owner or administrator; no request body.
 
 **Success — `200 OK`:** One request record with a `history` array, in the same shape as the create-request response.
+
+### Public support contact
+
+`POST /api/contact` — public, limited to five submissions per IP in 15 minutes.
+
+**Request body:**
+
+```json
+{
+  "name": "Jane Citizen",
+  "email": "jane@example.com",
+  "phone": "+254712345678",
+  "message": "I need help understanding the status of my service request."
+}
+```
+
+**Success — `202 Accepted`:** The support team is emailed the inquiry, and the requester receives a confirmation email.
+
+```json
+{
+  "message": "Your support request has been received. We will contact you soon."
+}
+```
 
 ### Administrator endpoints
 
