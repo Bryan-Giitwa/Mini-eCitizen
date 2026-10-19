@@ -2,7 +2,7 @@
 
 A citizen service-request application for reporting local issues, tracking progress, and helping administrators manage cases.
 
-**Stack:** React 18, Vite, React Router, Node.js, Express, MySQL/MariaDB, and JWT authentication.
+**Stack:** React 18, Vite, React Router, Node.js, Express, MySQL, and JWT authentication.
 
 ## Features
 
@@ -40,11 +40,11 @@ client/
 ### Requirements
 
 - Node.js 18 or later
-- MySQL/MariaDB
+- MySQL
 
 ### Database
 
-Import [`server/database/psrs_eCitizen.sql`](./server/database/psrs_eCitizen.sql) into MySQL/MariaDB. It is a database dump for `psrs_eCitizen`; inspect the SQL before importing it into a database that already contains data.
+Import [`server/database/psrs_eCitizen.sql`](./server/database/psrs_eCitizen.sql) into MySQL. It is a database dump for `psrs_eCitizen`; inspect the SQL before importing it into a database that already contains data.
 
 ### Backend
 
@@ -68,22 +68,14 @@ npm install
 npm run dev
 ```
 
-The Vite development server proxies `/api` and `/uploads` to `http://localhost:5000`.
-
 ## Production deployment
 
-The production API base URL used by the client is:
-
-```text
-https://hudumahubapi.jmatecsystems.com
-```
-
-Build the frontend with `cd client && npm run build`. Deploy the contents of `client/dist` to the frontend document root. On cPanel/Apache, include the hidden `.htaccess` file so browser refreshes on client-side routes resolve to `index.html`. If refreshes still return 404, confirm Apache `mod_rewrite` is enabled and `.htaccess` overrides are permitted.
+Build the frontend with `cd client && npm run build`. Deploy the contents of `client/dist` to the frontend document root.
 
 Configure the backend's production environment with the database credentials, a strong `JWT_SECRET`, and:
 
 ```text
-CLIENT_ORIGIN=https://hudumahub.jmatecsystems.com
+CLIENT_ORIGIN=http://localhost:5173
 ```
 
 `CLIENT_ORIGIN` must match the frontend's scheme and hostname exactly and must not include a path or trailing slash. Multiple origins can be comma-separated. Restart the backend after changing environment variables. Use a dedicated database user with only the required privileges.
@@ -93,7 +85,7 @@ CLIENT_ORIGIN=https://hudumahub.jmatecsystems.com
 ### Base URL
 
 ```text
-https://hudumahubapi.jmatecsystems.com
+http://localhost:5000
 ```
 
 For JSON requests, send `Content-Type: application/json`. Protected routes require:
@@ -253,22 +245,6 @@ All `/api/admin` endpoints require an administrator token.
 #### List, filter, and search requests
 
 `GET /api/admin/requests` — no request body.
-
-Optional query parameters:
-
-| Parameter  | Description                                   |
-| ---------- | --------------------------------------------- |
-| `page`     | Page number, starts at `1`                    |
-| `limit`    | Page size, defaults to `10`, maximum `50`     |
-| `status`   | `Pending`, `In Progress`, or `Resolved`       |
-| `category` | One of the allowed request categories         |
-| `q`        | Search location, description, or citizen name |
-
-Example:
-
-```text
-https://hudumahubapi.jmatecsystems.com/api/admin/requests?page=1&limit=10&status=Pending&q=Nairobi
-```
 
 **Success — `200 OK`:**
 
