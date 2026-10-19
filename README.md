@@ -6,13 +6,14 @@ A citizen service-request application for reporting local issues, tracking progr
 
 ## Features
 
-- Citizen registration and login with bcrypt-hashed passwords and seven-day JWTs
-- Submit requests with category, location, description, and an optional image
-- Citizen request history and status timelines, including an immediate pending-status confirmation after submission
-- Welcome and request-status email/SMS notifications
-- Admin request search, filters, pagination, status updates, and analytics
-- Responsive interface with image previews and accessible form controls
-- Authentication rate limiting, Helmet security headers, and validated image uploads
+- Citizen registration and login
+- Submit a request with a category, location, description, and optional image
+- Admin dashboard for managing requests and users
+- Status tracking: Pending → In Progress → Resolved
+- Basic analytics showing open and resolved cases
+- WhatsApp contact button and guided support chatbot
+- Email and SMS notifications for account welcome, request receipt, and status updates
+- Email confirmation and support-team follow-up for chatbot inquiries
 
 ## Repository layout
 
