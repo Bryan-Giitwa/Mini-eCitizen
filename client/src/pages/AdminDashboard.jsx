@@ -44,7 +44,7 @@ export default function AdminDashboard() {
     return () => clearTimeout(t);
   }, [search]);
 
-  // Fetch the current page. `ignore` discards responses from outdated filters (race-condition guard).
+  // Fetch the current page.
   useEffect(() => {
     let ignore = false;
     const params = new URLSearchParams({ limit: PAGE_SIZE });

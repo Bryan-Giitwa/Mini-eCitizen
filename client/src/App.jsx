@@ -1,23 +1,26 @@
-import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { useAuth } from './AuthContext';
-import Layout from './components/Layout';
-import ProtectedRoute from './components/ProtectedRoute';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import NewRequest from './pages/NewRequest';
-import RequestDetail from './pages/RequestDetail';
-import Profile from './pages/Profile';
+import { lazy, Suspense } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { useAuth } from "./AuthContext";
+import Layout from "./components/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import NewRequest from "./pages/NewRequest";
+import RequestDetail from "./pages/RequestDetail";
+import Profile from "./pages/Profile";
 
-// Admin screens are only needed by admins, so they are split into their own bundle.
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const AdminCreateUser = lazy(() => import('./components/AdminCreateUser'));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminCreateUser = lazy(() => import("./components/AdminCreateUser"));
 
 /** Sends admins and citizens to their own home screen. */
 function Home() {
   const { user } = useAuth();
-  return user.role === 'admin' ? <Navigate to="/admin" replace /> : <Dashboard />;
+  return user.role === "admin" ? (
+    <Navigate to="/admin" replace />
+  ) : (
+    <Dashboard />
+  );
 }
 
 export default function App() {

@@ -1,7 +1,7 @@
 /**
- * Express 4 does not catch rejected promises from async handlers.
  * Wrapping a handler forwards any error to the central error middleware.
  */
-const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
 
 module.exports = { asyncHandler };

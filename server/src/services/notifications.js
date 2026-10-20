@@ -5,6 +5,7 @@ const APP_URL = process.env.CLIENT_URL || "https://hudumahub.jmatecsystems.com";
 
 let transporter;
 
+// Escape all dynamic content before inserting it into the HTML email template.
 function escapeHtml(value) {
   return String(value ?? "").replace(
     /[&<>"']/g,
@@ -26,6 +27,7 @@ function getFirstName(name) {
     .slice(0, 32);
 }
 
+// Build both HTML and plain-text versions so email clients can choose the best format.
 function createEmail({
   name,
   greetingPrefix = "Hello",
@@ -85,6 +87,7 @@ function createEmail({
 function getTransporter() {
   if (transporter) return transporter;
 
+  // Create the SMTP connection lazily so missing mail settings fail only when email is used.
   const host = process.env.EMAIL_HOST;
   const port = Number(process.env.EMAIL_PORT || 465);
   const user = process.env.EMAIL_USERNAME;
@@ -138,6 +141,7 @@ async function sendSms(phone, message) {
   if (!recipient)
     throw new Error("SMS notification recipient phone number is invalid");
 
+  // Send E.164-style digits to the SMS provider and require its documented success response.
   const response = await fetch(SMS_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -175,6 +179,7 @@ async function sendSms(phone, message) {
 }
 
 async function deliver(event, channels) {
+  // A failure on one channel should not prevent delivery attempts on the other channels.
   const outcomes = await Promise.allSettled(
     channels.map(async ([channel, send]) => {
       await send();
@@ -213,6 +218,7 @@ async function sendWelcome({ name, email, phone }) {
   ]);
 }
 
+// Confirm receipt immediately after the request and its initial Pending history are saved.
 async function sendRequestReceived({
   id,
   name,
@@ -282,6 +288,7 @@ async function sendRequestStatusUpdate({
   ]);
 }
 
+// Notify the support inbox and acknowledge the inquiry to the sender; Reply-To enables a direct response.
 async function sendSupportContact({ name, email, phone, message: inquiry }) {
   const firstName = getFirstName(name);
   const supportEmail = process.env.SUPPORT_EMAIL || process.env.EMAIL_USERNAME;
