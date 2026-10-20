@@ -325,7 +325,7 @@ export default function ContactWidget() {
       <div className="contact-widget__actions">
         <a
           className="contact-widget__button contact-widget__button--whatsapp"
-          href="https://wa.me/254705173921?text=Hello%20Huduma%20Hub%2C%20I%20need%20help."
+          href="https://wa.me/254703816487?text=Hello%20Huduma%20Hub%2C%20I%20need%20help."
           target="_blank"
           rel="noreferrer"
           aria-label="Contact Huduma Hub on WhatsApp"
