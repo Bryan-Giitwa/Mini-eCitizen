@@ -21,6 +21,8 @@ A citizen service-request application for reporting local issues, tracking progr
 - Email and SMS notifications for account welcome, request receipt, and status updates
 - Email confirmation and support-team follow-up for chatbot inquiries
 
+The support chatbot offers quick guidance for submitting and tracking requests, then helps visitors contact a human agent when needed. It collects the visitor's name, email, phone number, and message, forwards the inquiry to support, and emails a confirmation.
+
 ## Product screenshots
 
 ### Admin experience
@@ -34,6 +36,13 @@ A citizen service-request application for reporting local issues, tracking progr
     <td align="center" colspan="2"><img src="./Photos/Admin-Update-Status.jpeg" width="640" alt="Admin updating a service request status and reviewing its activity timeline"><br><sub>Update a request and review its status history</sub></td>
   </tr>
 </table>
+
+### Contact assistant
+
+<p align="center">
+  <img src="./Photos/Chatbot.png" width="420" alt="Huduma Hub support chatbot with quick-help options and a talk-to-an-agent flow">
+  <br><sub>Quick answers and a guided path to contact the support team</sub>
+</p>
 
 ### Citizen notifications
 
