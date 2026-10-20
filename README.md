@@ -8,7 +8,7 @@ A citizen service-request application for reporting local issues, tracking progr
 
 **Try Huduma Hub at [https://hudumahub.jmatecsystems.com](https://hudumahub.jmatecsystems.com).**
 
-**The logins for citizen and Admin should be accessed in `server/.env.example` file.**
+**The logins for Demo Citizen and Admin should be accessed in `server/.env.example` file.**
 
 ## Features
 
