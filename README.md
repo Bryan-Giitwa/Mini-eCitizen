@@ -21,6 +21,36 @@ A citizen service-request application for reporting local issues, tracking progr
 - Email and SMS notifications for account welcome, request receipt, and status updates
 - Email confirmation and support-team follow-up for chatbot inquiries
 
+## Product screenshots
+
+### Admin experience
+
+<table>
+  <tr>
+    <td align="center"><img src="./Photos/Admin-Dashboard.jpeg" width="420" alt="Huduma Hub administrator dashboard with analytics and request list"><br><sub>Dashboard overview, analytics, and request management</sub></td>
+    <td align="center"><img src="./Photos/Admin-Add-Users.jpeg" width="420" alt="Admin page for creating and managing citizen and administrator accounts"><br><sub>Create accounts and manage user access</sub></td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2"><img src="./Photos/Admin-Update-Status.jpeg" width="640" alt="Admin updating a service request status and reviewing its activity timeline"><br><sub>Update a request and review its status history</sub></td>
+  </tr>
+</table>
+
+### Citizen notifications
+
+<table>
+  <tr>
+    <td align="center"><img src="./Photos/Citizen-Welcome-Message.jpeg" width="420" alt="Huduma Hub welcome email sent to a newly registered citizen"><br><sub>Welcome email after registration</sub></td>
+    <td align="center"><img src="./Photos/Citizen-SMS-Notification.jpeg" width="300" alt="SMS welcome and request status notifications received by a citizen"><br><sub>Welcome, request receipt, and status SMS messages</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="./Photos/Citizen-Pending-Status-EMailMessage.jpeg" width="420" alt="Email confirming a citizen request was received with Pending status"><br><sub>Request receipt confirmation — Pending</sub></td>
+    <td align="center"><img src="./Photos/Citizen-InProgress-Status-EMailMessage.jpeg" width="420" alt="Email notifying a citizen their request is In Progress"><br><sub>Status update — In Progress</sub></td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2"><img src="./Photos/Citizen-Resolved-Status-EMailMessage.jpeg" width="640" alt="Email notifying a citizen their request has been Resolved"><br><sub>Status update — Resolved</sub></td>
+  </tr>
+</table>
+
 ## Repository layout
 
 ```text
